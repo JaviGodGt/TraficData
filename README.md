@@ -159,6 +159,10 @@ cp .env.example .env
 # Editar .env: MAPBOX_ACCESS_TOKEN, STUDENT_ID, SECRET_KEY
 ```
 
+**Secretos / Mapbox:** el token vive **solo** en `traffic-service/.env` (está en `.gitignore`). Nunca lo pegues en README, issues, commits ni chats públicos. Si un token se expuso, rótalo en el [dashboard de Mapbox](https://account.mapbox.com/access-tokens/) (eliminar/regenerar) y actualiza `.env`.
+
+Puntos GPS de ejemplo (Ciudad de Guatemala): `traffic-service/data/points.csv`.
+
 ### Variables de entorno
 
 | Variable | Requerida | Default | Descripción |

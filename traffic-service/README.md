@@ -33,6 +33,15 @@ cp .env.example .env
 # Editar .env con MAPBOX_ACCESS_TOKEN, STUDENT_ID y SECRET_KEY
 ```
 
+**Importante:** copia `.env.example` → `.env` y pon el token ahí. `.env` está en `.gitignore` — **nunca** lo subas a GitHub. Si el token se filtró (chat, screenshot, commit), regenerarlo en Mapbox y reemplazarlo en `.env`.
+
+CSV de puntos reales de ejemplo: `data/points.csv`.
+
+```bash
+# Smoke test local (DRY_RUN, Mapbox real)
+python -m app.cli run --csv data/points.csv
+```
+
 ## Variables de entorno
 
 | Variable | Requerida | Default | Descripción |
