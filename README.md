@@ -163,6 +163,17 @@ cp .env.example .env
 
 Puntos GPS de ejemplo (Ciudad de Guatemala): `traffic-service/data/points.csv`.
 
+### Avance sin otros grupos (G2 solo)
+
+Con Mapbox y `DRY_RUN=true` pueden avanzar evidencia y Looker sin G1/G4:
+
+```bash
+cd traffic-service
+python scripts/g2_local_batch.py --csv data/points.csv
+```
+
+Eso actualiza `coverage_log.csv`, SQLite y `readings.csv`. Repetir en **hora pico** y **hora valle** para el informe. Detalle Looker Studio y checklist en [`traffic-service/README.md`](traffic-service/README.md).
+
 ### Variables de entorno
 
 | Variable | Requerida | Default | Descripción |

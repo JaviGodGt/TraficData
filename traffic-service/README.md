@@ -87,10 +87,43 @@ python -m app.cli run --csv points.csv --loop --interval 300
 python -m app.cli export-csv --out readings.csv
 ```
 
+## Batch local G2 (sin otros grupos)
+
+Un solo comando: cobertura Mapbox + ingesta DRY_RUN + export para Looker.
+
+```bash
+cd traffic-service
+python scripts/g2_local_batch.py --csv data/points.csv
+```
+
+Genera / actualiza:
+
+- `coverage_log.csv` — evidencia append-only (gitignored)
+- `traffic.db` — lecturas crudas (gitignored)
+- `readings.csv` — export para Looker Studio (gitignored)
+
+### Checklist hora pico / valle (informe)
+
+1. Correr el batch en **hora pico** (p.ej. 7:30–9:00 o 17:00–19:00).
+2. Correr el **mismo** comando en **hora valle** (p.ej. 22:00–23:00 o domingo temprano).
+3. Comparar en `coverage_log.csv` las columnas `t_traffic_s` / `traffic_congestion_index` entre ambas corridas (mismo `lat,lon`).
+4. Guardar capturas o copias fechadas del log para el informe.
+
+Si aparecen muchos `INVALID` con `SEGMENT_MISMATCH`, el snap de Mapbox alargó la ruta fuera de `[0.5×, 3×]` de `SEGMENT_LENGTH_M`. Ajusta puntos a vías continuas o prueba otro `SEGMENT_BEARING_DEG` / `SEGMENT_LENGTH_M` en `.env`.
+
+### Looker Studio (tablero G2)
+
+1. Ejecutar el batch (o `python -m app.cli export-csv --out readings.csv`).
+2. En [Looker Studio](https://lookerstudio.google.com/): **Crear → Fuente de datos → Subir archivo** → seleccionar `readings.csv`.
+3. Campos útiles: `timestamp`, `lat`, `lon`, `traffic_congestion_index`, `status`, `t_traffic_s`, `t_free_s`.
+4. Gráficos sugeridos: serie temporal del índice, mapa por lat/lon, tabla filtrada por `status=DRY_RUN` (o `SENT` cuando exista DW).
+
+El envío al Data Warehouse del G4 sigue pendiente (`DRY_RUN=false` + `DW_ENDPOINT_URL`).
+
 ## Script de cobertura (evidencia hora pico / valle)
 
 ```bash
-python scripts/coverage_check.py --csv points.csv --log coverage_log.csv
+python scripts/coverage_check.py --csv data/points.csv --log coverage_log.csv
 ```
 
 Imprime una tabla por punto (`t_traffic`, `t_free`, distancia, índice, congestion promedio) y agrega cada corrida con timestamp a `coverage_log.csv`.

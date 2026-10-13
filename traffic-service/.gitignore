@@ -13,7 +13,9 @@ dist/
 build/
 coverage_log.csv
 readings.csv
+data/readings.csv
 .coverage
+
 htmlcov/
 .idea/
 .vscode/
