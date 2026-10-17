@@ -75,7 +75,7 @@ TraficData/
     │   ├── contract.py       # payload + auth_hash
     │   ├── dw_client.py      # POST al Data Warehouse G4
     │   ├── storage.py        # SQLite + export CSV
-    │   ├── sources.py        # CSV / stub API G1
+    │   ├── sources.py        # CSV / API G1 (records)
     │   ├── main.py           # pipeline + FastAPI
     │   └── cli.py            # run / export-csv
     ├── scripts/
@@ -187,7 +187,8 @@ Eso actualiza `coverage_log.csv`, SQLite y `readings.csv`. Repetir en **hora pic
 | `SEGMENT_LENGTH_M` | no | `400` | Longitud del tramo (m) |
 | `SEGMENT_BEARING_DEG` | no | `0` | Rumbo del segundo punto (°) |
 | `DB_PATH` | no | `traffic.db` | SQLite local |
-| `GROUP1_API_URL` | no | — | Reservado para feed G1 (stub) |
+| `GROUP1_API_URL` | no | — | Feed G1 (`…/api/records`) |
+| `GROUP1_API_TOKEN` | no | — | API key G1 (header `x-api-key`) |
 
 Los secretos **nunca** se hardcodean ni se loguean. No subir `.env` al repo.
 
@@ -211,8 +212,12 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 # CSV de puntos GPS reales (columnas lat,lon o latitude,longitude)
 python -m app.cli run --csv points.csv
 
+# Puntos GPS reales desde la API del G1 (Noise Monitor)
+python -m app.cli run --from-g1
+
 # Bucle cada 5 minutos
 python -m app.cli run --csv points.csv --loop --interval 300
+python -m app.cli run --from-g1 --loop --interval 300
 
 # Exportar SQLite → CSV (fuente Looker Studio)
 python -m app.cli export-csv --out readings.csv
@@ -251,7 +256,7 @@ Coordinar con los otros grupos:
 - [ ] Confirmar formato exacto de `auth_hash` con G4
 - [ ] Confirmar endpoint y autenticación del DW
 - [ ] Confirmar aceptación de `null` en `noise_db` / `air_quality_aqi`
-- [ ] Origen de coordenadas: CSV, API G1 o feed del DW — `Group1ApiSource` es stub por ahora
+- [x] Origen de coordenadas: CSV o API G1 (`python -m app.cli run --from-g1`)
 
 ---
 

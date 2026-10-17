@@ -55,7 +55,8 @@ python -m app.cli run --csv data/points.csv
 | `SEGMENT_LENGTH_M` | no | `400` | Longitud del tramo sintético (m) |
 | `SEGMENT_BEARING_DEG` | no | `0` | Rumbo del segundo punto (°) |
 | `DB_PATH` | no | `traffic.db` | SQLite local |
-| `GROUP1_API_URL` | no | — | Reservado para fuente G1 (stub) |
+| `GROUP1_API_URL` | no | — | Feed G1 (`https://api.quick-convertor.com/api/records`) |
+| `GROUP1_API_TOKEN` | no | — | API key G1 enviada como header `x-api-key` |
 
 Los secretos **nunca** se hardcodean ni se loguean.
 
@@ -80,8 +81,12 @@ Respuesta incluye `status` (`SENT` | `DRY_RUN` | `FAILED` | `INVALID`), `payload
 # Ingestar puntos reales desde CSV (columnas lat,lon o latitude,longitude)
 python -m app.cli run --csv points.csv
 
+# Ingestar puntos GPS reales desde la API del G1
+python -m app.cli run --from-g1
+
 # Bucle cada 5 minutos
 python -m app.cli run --csv points.csv --loop --interval 300
+python -m app.cli run --from-g1 --loop --interval 300
 
 # Exportar SQLite → CSV (fuente Looker Studio)
 python -m app.cli export-csv --out readings.csv
@@ -147,4 +152,4 @@ Campos: `reading_id`, `timestamp`, `latitude`, `longitude`, `student_id`, `auth_
 - Confirmar formato exacto de `auth_hash` con G4
 - Confirmar endpoint y autenticación del DW
 - Confirmar aceptación de `null` en `noise_db` / `air_quality_aqi`
-- Implementar `Group1ApiSource` cuando exista el feed de coordenadas
+- `Group1ApiSource` ya consume `/api/records` (auth `x-api-key`, paginación)

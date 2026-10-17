@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     segment_bearing_deg: float = Field(default=0.0, alias="SEGMENT_BEARING_DEG")
     db_path: str = Field(default="traffic.db", alias="DB_PATH")
     group1_api_url: str | None = Field(default=None, alias="GROUP1_API_URL")
+    group1_api_token: str | None = Field(default=None, alias="GROUP1_API_TOKEN")
 
     @property
     def should_send_to_dw(self) -> bool:

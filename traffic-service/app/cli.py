@@ -9,18 +9,37 @@ import time
 
 from app.config import get_settings
 from app.main import process_reading
-from app.sources import CsvSource
+from app.sources import CsvSource, Group1ApiError, Group1ApiSource
 from app.storage import Storage
 
 logger = logging.getLogger(__name__)
 
 
+def _load_points(args: argparse.Namespace) -> list[tuple[float, float]]:
+    settings = get_settings()
+    if args.from_g1:
+        if not settings.group1_api_url or not settings.group1_api_token:
+            raise ValueError(
+                "GROUP1_API_URL and GROUP1_API_TOKEN must be set in .env for --from-g1"
+            )
+        with Group1ApiSource(
+            settings.group1_api_url,
+            settings.group1_api_token,
+        ) as source:
+            return source.get_points()
+    return CsvSource(args.csv).get_points()
+
+
 def cmd_run(args: argparse.Namespace) -> int:
     settings = get_settings()
-    source = CsvSource(args.csv)
-    points = source.get_points()
+    try:
+        points = _load_points(args)
+    except (Group1ApiError, ValueError, FileNotFoundError) as exc:
+        logger.error("%s", exc)
+        return 1
+
     if not points:
-        logger.error("No points found in %s", args.csv)
+        logger.error("No points found from selected source")
         return 1
 
     storage = Storage(settings.db_path)
@@ -39,6 +58,16 @@ def cmd_run(args: argparse.Namespace) -> int:
             )
         if not args.loop:
             break
+        if args.from_g1:
+            # Refresh GPS feed each loop iteration
+            try:
+                points = _load_points(args)
+            except (Group1ApiError, ValueError) as exc:
+                logger.error("Failed to refresh G1 points: %s", exc)
+                return 1
+            if not points:
+                logger.error("No points found from G1 on refresh")
+                return 1
         logger.info("Sleeping %s seconds", args.interval)
         time.sleep(args.interval)
     return 0
@@ -59,8 +88,17 @@ def build_parser() -> argparse.ArgumentParser:
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
-    run_p = sub.add_parser("run", help="Ingest points from a CSV of real GPS coordinates")
-    run_p.add_argument("--csv", required=True, help="Path to CSV with lat,lon columns")
+    run_p = sub.add_parser("run", help="Ingest points from CSV or Group 1 API")
+    source = run_p.add_mutually_exclusive_group(required=True)
+    source.add_argument(
+        "--csv",
+        help="Path to CSV with lat,lon columns",
+    )
+    source.add_argument(
+        "--from-g1",
+        action="store_true",
+        help="Load GPS points from Group 1 records API (GROUP1_API_URL + GROUP1_API_TOKEN)",
+    )
     run_p.add_argument("--loop", action="store_true", help="Repeat forever")
     run_p.add_argument(
         "--interval",
